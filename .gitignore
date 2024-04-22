@@ -1,4 +1,4 @@
 __pycache__
-tarkov_fastapi/cqrs.py 
-tarkov_fastapi/LICENSE
-tarkov_fastapi/.DS_Store
+cqrs.py 
+LICENSE
+.DS_Store
