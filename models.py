@@ -1,5 +1,6 @@
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from database import Base
+# Create Table for MySQL databse
 
 class User(Base):
     __tablename__ = "users"
@@ -17,15 +18,13 @@ class TarkovAmmo(Base):
     velocity = Column(Integer)
     frag_pct = Column(Integer)
 
-class UpdateAmmo(Base): # filter by if post.ammo_name = tarkov_ammo.ammo_name & post.calibre = tarkov_ammo.calibre 
-                  # -> post.tarkov_ammo.penetration etc
-    __tablename__ = 'updates'
+class Entry(Base): # Ammo Entry
+    __tablename__ = 'entries'
 
     id = Column(Integer, primary_key=True, index=True)
     ammo_name = Column(String(25))
     calibre = Column(String(25))
     ammo_amount = Column(Integer)
-    user_id = Column(Integer)
+    user_id = Column(Integer, ForeignKey("users.id"))
 
-
-
+# storage model has a list of 
