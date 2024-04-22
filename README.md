@@ -1,2 +1,2 @@
-# tarkov_fastapi_app
+# tarkov_fastapi
 A solo project building a FastAPI app to interact with Tarkov SQL data
