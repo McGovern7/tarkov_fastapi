@@ -12,16 +12,6 @@ CREATE TABLE `tarkov_ammo` (
   PRIMARY KEY (ammo_name, calibre)
 );
 
-#CREATE TABLE `tarkov_quests` (
-#  quest_name VARCHAR(25),
-#  trader_name VARCHAR(15),
-#  location VARCHAR(25),
-#  req_lvl INT,
-#  rep_gained FLOAT,
-#  xp_gained INT,
-#  PRIMARY KEY (quest_name)
-#);
-
 INSERT INTO `tarkov_ammo` (
 `ammo_name`,
 `calibre`,
@@ -184,9 +174,9 @@ VALUES
 ('BLACKOUT AP','.300 blk',48,51,635,30),
 
 ('SIG FMJ','6.8x51mm',36,80,899,18),
-('SIG HYBRID','6.8x51mm',47,72,914,12),
+('SIG_HYBRID','6.8x51mm',47,72,914,12),
 
-('ULTRA NOSLER','7.62x51mm',15,107,822,70),
+('ULTRA_NOSLER','7.62x51mm',15,107,822,70),
 ('TCW SP','7.62x51mm',30,87,808,35),
 ('BCP FMJ','7.62x51mm',35,83,840,20),
 ('M80','7.62x51mm',41,80,833,17),
@@ -194,15 +184,15 @@ VALUES
 ('M61','7.62x51mm',64,70,849,13),
 ('M993','7.62x51mm',70,67,910,12),
 
-('HP BT (TRACER)','7.62x54R',23,102,807,40),
-('SP BT (TRACER)','7.62x54R',27,92,703,24),
+('HP_BT (TRACER)','7.62x54R',23,102,807,40),
+('SP_BT (TRACER)','7.62x54R',27,92,703,24),
 ('FMJ','7.62x54R',33,84,760,20),
-('T-46M GZH','7.62x54R',41,82,800,18),
-('LPS GZH','7.62x54R',42,81,865,18),
-('PS GZH','7.62x54R',45,84,875,8),
-('BT GZH','7.62x54R',55,78,875,8),
-('SNB GZH','7.62x54R',62,75,875,8),
-('BS GS','7.62x54R',70,72,785,8),
+('T-46M_GZH','7.62x54R',41,82,800,18),
+('LPS_GZH','7.62x54R',42,81,865,18),
+('PS_GZH','7.62x54R',45,84,875,8),
+('BT_GZH','7.62x54R',55,78,875,8),
+('SNB_GZH','7.62x54R',62,75,875,8),
+('BS_GS','7.62x54R',70,72,785,8),
 
 ('PS12A','12.7x55mm',10,165,290,70),
 ('PS12','12.7x55mm',28,115,285,30),
@@ -214,11 +204,6 @@ VALUES
 ('AP','.338 Lapua Magnum',79,115,849,13)
 ; 
 
-#ALTER TABLE `tarkov_ammo`
-#ADD class_one INT, # value 6 if penetration > 20
-#ADD class_two INT,
-#ADD class_three INT,
-#ADD class_four INT,
-#ADD class_five INT,
-#ADD class_six INT;
-
+SET SQL_SAFE_UPDATES = 0;
+UPDATE `tarkov_ammo` SET `ammo_name` = Replace(`ammo_name`, ' ', '_');
+UPDATE `tarkov_ammo` SET `calibre` = Replace(`calibre`, ' ', '_');
