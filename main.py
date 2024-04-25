@@ -4,8 +4,9 @@ from typing import Annotated, List
 import models as models
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
+import auth
+from auth import get_current_user
 
-from database import SessionLocal, engine
 from fastapi.middleware.cors import CORSMiddleware
 
 # uvicorn main:app --reload
@@ -13,29 +14,29 @@ from fastapi.middleware.cors import CORSMiddleware
 # React app on port 3000
 TOTAL_AMMO_TYPES = 160
 app = FastAPI()
+app.include_router(auth.router)
 
-# a different application is allowed to call our faspapi application iff it is running on our local host on port 3000
+# a different application is allowed to call our fastapi application iff it is running on our local host on port 3000
+
 origins = [
-    'http://localhost:3000'
+    "http://localhost:3000",
 ]
 # add origins to application
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*']
 )
 
 # pydantic models validate requests from React application
+# use pydantic validators
 class EntryBase(BaseModel): # updating user number of each ammo
     ammo_name: str
     calibre: str
     ammo_amount: int
     user_id: int
-
-class EntryModel(EntryBase):
-    id: int
-
-    class Config:
-        orm_mode = True
     
 class LookupBase(BaseModel): # lookup info of ammo from static database
     ammo_name: str
@@ -56,6 +57,7 @@ def get_db(): # dont have db open too long
         db.close()
 
 db_dependency = Annotated[Session, Depends(get_db)]
+user_dependency = Annotated[dict, Depends(get_current_user)]
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -75,6 +77,12 @@ def validate_ammo(db, name, calibre) -> bool: # validate the user's ammo and cal
     finally:
         db.close()
 
+@app.get("/", status_code=status.HTTP_200_OK)
+async def user(user: user_dependency, db: db_dependency):
+    if user is None:
+        raise HTTPException(status_code=401, detail='Authentication Failed')
+    return {"User": user}
+
 # GET static ammo database
 @app.get("/tarkov_ammo/{ammo_name}/{calibre}}", status_code=status.HTTP_200_OK)
 async def read_ammo(ammo_name: str, calibre: str, db: db_dependency) -> (LookupBase | None): # data inputted needs to have underscores
@@ -88,31 +96,31 @@ async def read_ammo(ammo_name: str, calibre: str, db: db_dependency) -> (LookupB
     return ammo
 
 # CREATE ammo entry
-@app.post("/entries/", response_model=EntryModel, status_code=status.HTTP_201_CREATED)
+@app.post("/entries/", status_code=status.HTTP_201_CREATED)
 async def create_entry(entry: EntryBase, db: db_dependency) -> None:
     db_entry = models.Entry(**entry.model_dump())
-    if not validate_ammo(db, entry.ammo_name, entry.calibre): # validate for matching [ammo_name, calibre] row in
+    if not validate_ammo(db, entry.ammo_name, entry.calibre): # use pydantic validation
         # prompt user again 
         raise HTTPException(status_code=404, detail='Invalid Entry')
     db.add(db_entry)
     db.commit()
-    db.refresh(db_entry)
-    return db_entry
 
 # GET user's entries
-@app.get("/entries/{user_id}", response_model=List[EntryModel], status_code=status.HTTP_200_OK)
+@app.get("/entries/{user_id}", status_code=status.HTTP_200_OK)
 async def read_entries(user_id: int, db: db_dependency, skip: int = 0, limit: int = TOTAL_AMMO_TYPES): # compare with user id
     entry = db.query(models.Entry).filter(models.Entry.user_id == user_id).offset(skip).limit(limit).all()
     if entry is None:
         raise HTTPException(status_code=404, detail='Entries were not found')
     return entry
 
+'''
 # CREATE and save a user
 @app.post("/users/", status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserBase, db: db_dependency):
     db_user = models.User(**user.model_dump())
     db.add(db_user)
     db.commit()
+'''
 
 # GET user data
 @app.get("/users/{user_id}", status_code=status.HTTP_200_OK)
@@ -122,18 +130,15 @@ async def read_user(user_id: int, db: db_dependency) -> (UserBase | None):
         raise HTTPException(status_code=404, detail='User not found')
     return user 
 
-# DELETE user and their entries
-@app.delete('/users/{username}', status_code=status.HTTP_200_OK)
+# DELETE user AND their entries
+@app.delete('/users/{user_id}', status_code=status.HTTP_200_OK)
 async def delete_user(user_id: int, db: db_dependency) -> None:
+    db_user_entry = db.query(models.Entry).filter(models.Entry.user_id == user_id).all()
+    if db_user_entry:
+        for entry in db_user_entry:
+            db.delete(entry) # delete entry at user_id if it exists
     db_user = db.query(models.User).filter(models.User.id == user_id).first() # delete user at id
     if db_user is None:
         raise HTTPException(status_code=404, detail='User not found')
     db.delete(db_user)
-    db_user_entry = db.query(models.Entry).filter(models.Entry.user_id == user_id).first()
-    if db_user_entry:
-        db.delete(db_user_entry) # delete entry at user_id if it exists
-
     db.commit()
-
-# stor
-# Create and put into user ammo db are different?
