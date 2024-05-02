@@ -4,16 +4,16 @@ from database import Base
 
 class User(Base):
     __tablename__ = "users"
-    # composite key ammo_name, calibre
+    # composite key ammo_name, caliber
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(25), unique=True)
+    username = Column(String(15), unique=True)
     hashed_password = Column(String(64))
 
 class TarkovAmmo(Base):
     __tablename__ = "tarkov_ammo"
 
     ammo_name = Column(String(25), primary_key=True)
-    calibre = Column(String(25), primary_key=True)
+    caliber = Column(String(25), primary_key=True)
     penetration = Column(Integer)
     damage = Column(Integer)
     velocity = Column(Integer)
@@ -24,7 +24,7 @@ class Entry(Base): # Ammo Entry
 
     id = Column(Integer, primary_key=True, index=True)
     ammo_name = Column(String(25))
-    calibre = Column(String(25))
+    caliber = Column(String(25))
     ammo_amount = Column(Integer)
     user_id = Column(Integer, ForeignKey("users.id"))
 

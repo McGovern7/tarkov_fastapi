@@ -38,8 +38,22 @@ def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
+# ensure username doesn't already exist in User
+def user_match(db, username) -> bool:
+    try:
+        match = db.query(User).filter(User.username == username).first()
+        if not match:
+            return False
+        else:
+            return True
+    finally:
+        db.close()
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency, create_user_request: CreateUserRequest):
+    if user_match(db, create_user_request.username):
+        print("reached")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Username already exists.')
     create_user_model = User(
         username=create_user_request.username,
         hashed_password=bcrypt_context.hash(create_user_request.password), # hashing the password

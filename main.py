@@ -34,13 +34,13 @@ app.add_middleware(
 # use pydantic validators
 class EntryBase(BaseModel): # updating user number of each ammo
     ammo_name: str
-    calibre: str
+    caliber: str
     ammo_amount: int
     user_id: int
     
 class LookupBase(BaseModel): # lookup info of ammo from static database
     ammo_name: str
-    calibre: str
+    caliber: str
     penetration: int
     damage: int
     velocity: int
@@ -61,22 +61,21 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 
 models.Base.metadata.create_all(bind=engine)
 
-def validate_ammo(db, name, calibre) -> bool: # validate the user's ammo and calibre with the tarkov_ammo datatable
+# validate the user's ammo and caliber with the tarkov_ammo datatable
+def validate_ammo(db, name, caliber) -> bool: 
     try:
         validate_ammo = db.query(models.TarkovAmmo).filter(
             models.TarkovAmmo.ammo_name == name and
-            models.TarkovAmmo.calibre == calibre
+            models.TarkovAmmo.caliber == caliber
         ).first()
-        print(validate_ammo)
         if not validate_ammo:
-            print("check false")
             return False
         else:
-            print("check true")
             return True
     finally:
         db.close()
 
+# get current user information
 @app.get("/", status_code=status.HTTP_200_OK)
 async def user(user: user_dependency, db: db_dependency):
     if user is None:
@@ -84,28 +83,27 @@ async def user(user: user_dependency, db: db_dependency):
     return {"User": user}
 
 # GET static ammo database
-@app.get("/tarkov_ammo/{ammo_name}/{calibre}}", status_code=status.HTTP_200_OK)
-async def read_ammo(ammo_name: str, calibre: str, db: db_dependency) -> (LookupBase | None): # data inputted needs to have underscores
+@app.get("/tarkov_ammo/{ammo_name}/{caliber}}", status_code=status.HTTP_200_OK)
+async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> (LookupBase | None): # data inputted needs to have underscores
     ammo = db.query(models.TarkovAmmo).filter(
             models.TarkovAmmo.ammo_name == ammo_name and
-            models.TarkovAmmo.calibre == calibre
+            models.TarkovAmmo.caliber == caliber
         ).first()
     if ammo is None:
-        raise HTTPException(status_code=404, detail='Ammo and calibre not found')
-    print(ammo)
+        raise HTTPException(status_code=404, detail='Ammo and caliber not found')
     return ammo
 
 # CREATE ammo entry
 @app.post("/entries/", status_code=status.HTTP_201_CREATED)
 async def create_entry(entry: EntryBase, db: db_dependency) -> None:
     db_entry = models.Entry(**entry.model_dump())
-    if not validate_ammo(db, entry.ammo_name, entry.calibre): # use pydantic validation
+    if not validate_ammo(db, entry.ammo_name, entry.caliber): # use pydantic validation
         # prompt user again 
         raise HTTPException(status_code=404, detail='Invalid Entry')
     db.add(db_entry)
     db.commit()
 
-# GET user's entries
+# GET entries at user_id
 @app.get("/entries/{user_id}", status_code=status.HTTP_200_OK)
 async def read_entries(user_id: int, db: db_dependency, skip: int = 0, limit: int = TOTAL_AMMO_TYPES): # compare with user id
     entry = db.query(models.Entry).filter(models.Entry.user_id == user_id).offset(skip).limit(limit).all()
@@ -113,19 +111,10 @@ async def read_entries(user_id: int, db: db_dependency, skip: int = 0, limit: in
         raise HTTPException(status_code=404, detail='Entries were not found')
     return entry
 
-'''
-# CREATE and save a user
-@app.post("/users/", status_code=status.HTTP_201_CREATED)
-async def create_user(user: UserBase, db: db_dependency):
-    db_user = models.User(**user.model_dump())
-    db.add(db_user)
-    db.commit()
-'''
-
 # GET user data
-@app.get("/users/{user_id}", status_code=status.HTTP_200_OK)
+@app.get("/users/", status_code=status.HTTP_200_OK)
 async def read_user(user_id: int, db: db_dependency) -> (UserBase | None):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+    user = db.query(models.User).filter(models.User.id == user_id).all()
     if user is None:
         raise HTTPException(status_code=404, detail='User not found')
     return user 
