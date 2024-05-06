@@ -5,8 +5,7 @@ import models as models
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 import auth
-from auth import get_current_user
-
+# from auth import verify_user_token
 from fastapi.middleware.cors import CORSMiddleware
 
 # uvicorn main:app --reload
@@ -19,15 +18,15 @@ app.include_router(auth.router)
 # a different application is allowed to call our fastapi application iff it is running on our local host on port 3000
 
 origins = [
-    "http://localhost:3000",
+    "http://localhost:3000", # adjust port if running on different server
 ]
 # add origins to application
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=origins, # allow all origins from the list
     allow_credentials=True,
-    allow_methods=['*'],
-    allow_headers=['*']
+    allow_methods=['*'], # allow all methods
+    allow_headers=['*'] # allow all headers
 )
 
 # pydantic models validate requests from React application
@@ -36,7 +35,7 @@ class EntryBase(BaseModel): # updating user number of each ammo
     ammo_name: str
     caliber: str
     ammo_amount: int
-    user_id: int
+    username: str
     
 class LookupBase(BaseModel): # lookup info of ammo from static database
     ammo_name: str
@@ -57,7 +56,7 @@ def get_db(): # dont have db open too long
         db.close()
 
 db_dependency = Annotated[Session, Depends(get_db)]
-user_dependency = Annotated[dict, Depends(get_current_user)]
+# user_dependency = Annotated[dict, Depends(verify_user_token)]
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -74,14 +73,7 @@ def validate_ammo(db, name, caliber) -> bool:
             return True
     finally:
         db.close()
-
-# get current user information
-@app.get("/", status_code=status.HTTP_200_OK)
-async def user(user: user_dependency, db: db_dependency):
-    if user is None:
-        raise HTTPException(status_code=401, detail='Authentication Failed')
-    return {"User": user}
-
+    
 # GET static ammo database
 @app.get("/tarkov_ammo/{ammo_name}/{caliber}}", status_code=status.HTTP_200_OK)
 async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> (LookupBase | None): # data inputted needs to have underscores
@@ -103,30 +95,22 @@ async def create_entry(entry: EntryBase, db: db_dependency) -> None:
     db.add(db_entry)
     db.commit()
 
-# GET entries at user_id
-@app.get("/entries/{user_id}", status_code=status.HTTP_200_OK)
-async def read_entries(user_id: int, db: db_dependency, skip: int = 0, limit: int = TOTAL_AMMO_TYPES): # compare with user id
-    entry = db.query(models.Entry).filter(models.Entry.user_id == user_id).offset(skip).limit(limit).all()
+# GET entries at username
+@app.get("/entries/{username}", status_code=status.HTTP_200_OK)
+async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: int = TOTAL_AMMO_TYPES): # compare with user id
+    entry = db.query(models.Entry).filter(models.Entry.username == username).offset(skip).limit(limit).all()
     if entry is None:
         raise HTTPException(status_code=404, detail='Entries were not found')
     return entry
 
-# GET user data
-@app.get("/users/", status_code=status.HTTP_200_OK)
-async def read_user(user_id: int, db: db_dependency) -> (UserBase | None):
-    user = db.query(models.User).filter(models.User.id == user_id).all()
-    if user is None:
-        raise HTTPException(status_code=404, detail='User not found')
-    return user 
-
 # DELETE user AND their entries
-@app.delete('/users/{user_id}', status_code=status.HTTP_200_OK)
-async def delete_user(user_id: int, db: db_dependency) -> None:
-    db_user_entry = db.query(models.Entry).filter(models.Entry.user_id == user_id).all()
+@app.delete('/users/{username}', status_code=status.HTTP_200_OK)
+async def delete_user(username: str, db: db_dependency) -> None:
+    db_user_entry = db.query(models.Entry).filter(models.Entry.username == username).all()
     if db_user_entry:
         for entry in db_user_entry:
             db.delete(entry) # delete entry at user_id if it exists
-    db_user = db.query(models.User).filter(models.User.id == user_id).first() # delete user at id
+    db_user = db.query(models.User).filter(models.User.username == username).first() # delete user at id
     if db_user is None:
         raise HTTPException(status_code=404, detail='User not found')
     db.delete(db_user)

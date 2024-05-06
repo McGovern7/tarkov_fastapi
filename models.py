@@ -26,6 +26,6 @@ class Entry(Base): # Ammo Entry
     ammo_name = Column(String(25))
     caliber = Column(String(25))
     ammo_amount = Column(Integer)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    username = Column(String(15), ForeignKey("users.username"))
 
 # storage model has a list of 
