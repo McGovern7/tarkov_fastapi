@@ -92,17 +92,13 @@ def verify_token(token: str = Depends(oauth2_scheme)):
         username: str = payload.get('sub')
         id: int = payload.get('id')
         if username is None:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Token is invalid or expired.')
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='API Error: User not Found. Token is invalid or expired.')
         # get_current_user(username=username, user_id=id)
         return payload
     except JWTError:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Token is invalid or expired.')
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='JWT Error: Token is invalid or expired.')
     
 @router.get("/verify-token/{token}")
 async def verify_user_token(token: str):
     verify_token(token=token)
     return {"message": "Token is valid"}
-'''
-async def get_current_user(username: str, user_id: int):
-    return {'username': username, 'id': username}
-'''

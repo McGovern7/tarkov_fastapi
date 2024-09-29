@@ -61,20 +61,35 @@ db_dependency = Annotated[Session, Depends(get_db)]
 models.Base.metadata.create_all(bind=engine)
 
 # validate the user's ammo and caliber with the tarkov_ammo datatable
-def validate_ammo(db, name, caliber) -> bool: 
+def validate_ammo(db, name, caliber, ammo_ammount) -> bool: 
     try:
         validate_ammo = db.query(models.TarkovAmmo).filter(
             models.TarkovAmmo.ammo_name == name and
             models.TarkovAmmo.caliber == caliber
         ).first()
-        if not validate_ammo:
+        if not validate_ammo or ammo_ammount < 1:
             return False
         else:
             return True
     finally:
         db.close()
+'''
+def findDuplicate(db, entry) -> int:
+    try:
+        findDuplicate = db.query(models.Entry).filter(
+            models.Entry.ammo_name == entry.ammo_name and
+            models.Entry.caliber == entry.calibre and
+            models.Entry.username == entry.username
+        ).first()
+        if not findDuplicate:
+            return -1
+        else:
+            return models.Entry.id
+    finally:
+        db.close()
+'''
     
-# GET static ammo database
+# GET static ammo from ammo database
 @app.get("/tarkov_ammo/{ammo_name}/{caliber}}", status_code=status.HTTP_200_OK)
 async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> (LookupBase | None): # data inputted needs to have underscores
     ammo = db.query(models.TarkovAmmo).filter(
@@ -86,14 +101,23 @@ async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> (LookupB
     return ammo
 
 # CREATE ammo entry
+# TODO: repeat entries combine numbers
 @app.post("/entries/", status_code=status.HTTP_201_CREATED)
 async def create_entry(entry: EntryBase, db: db_dependency) -> None:
     db_entry = models.Entry(**entry.model_dump())
-    if not validate_ammo(db, entry.ammo_name, entry.caliber): # use pydantic validation
+    if not validate_ammo(db, entry.ammo_name, entry.caliber, entry.ammo_amount): # use pydantic validation
         # prompt user again 
         raise HTTPException(status_code=404, detail='Invalid Entry')
+    #dupe_id = findDuplicate(db, entry)
+    #if dupe_id >= 0:
+    #    patch_duplicate(entry, dupe_id, db) # append onto existing
+    #else:
     db.add(db_entry)
     db.commit()
+
+#@app.patch("/entries/", status_code=status.HTTP_201_CREATED)
+#async def patch_duplicate(entry: EntryBase, dupe_id: int, db: db_dependency) -> None:
+
 
 # GET entries at username
 @app.get("/entries/{username}", status_code=status.HTTP_200_OK)
@@ -107,8 +131,8 @@ async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: i
 @app.delete('/users/{username}', status_code=status.HTTP_200_OK)
 async def delete_user(username: str, db: db_dependency) -> None:
     db_user_entry = db.query(models.Entry).filter(models.Entry.username == username).all()
-    if db_user_entry:
-        for entry in db_user_entry:
+    if db_user_entry: 
+        for entry in db_user_entry: # len(entries) runtime
             db.delete(entry) # delete entry at user_id if it exists
     db_user = db.query(models.User).filter(models.User.username == username).first() # delete user at id
     if db_user is None:
