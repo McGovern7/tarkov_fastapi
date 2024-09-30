@@ -44,6 +44,7 @@ class LookupBase(BaseModel): # lookup info of ammo from static database
     damage: int
     velocity: int
     frag_pct: int
+    ammo_group: int
 
 class UserBase(BaseModel): # username and ID
     username: str
@@ -61,13 +62,13 @@ db_dependency = Annotated[Session, Depends(get_db)]
 models.Base.metadata.create_all(bind=engine)
 
 # validate the user's ammo and caliber with the tarkov_ammo datatable
-def validate_ammo(db, name, caliber, ammo_ammount) -> bool: 
+def validate_ammo(db, name, caliber) -> bool: 
     try:
         validate_ammo = db.query(models.TarkovAmmo).filter(
             models.TarkovAmmo.ammo_name == name and
             models.TarkovAmmo.caliber == caliber
         ).first()
-        if not validate_ammo or ammo_ammount < 1:
+        if not validate_ammo:
             return False
         else:
             return True
@@ -78,7 +79,7 @@ def findDuplicate(db, entry) -> int:
     try:
         findDuplicate = db.query(models.Entry).filter(
             models.Entry.ammo_name == entry.ammo_name and
-            models.Entry.caliber == entry.calibre and
+            models.Entry.caliber == entry.caliber and
             models.Entry.username == entry.username
         ).first()
         if not findDuplicate:
@@ -88,10 +89,22 @@ def findDuplicate(db, entry) -> int:
     finally:
         db.close()
 '''
+# Get all ammo info ordered by caliber, then armor penetration, then damage
+@app.get("/tarkov_ammo/", status_code=status.HTTP_200_OK)
+async def read_all_ammo(db: db_dependency, limit: int = TOTAL_AMMO_TYPES):
+    type = db.query(models.TarkovAmmo).order_by(
+        models.TarkovAmmo.ammo_group.asc(),
+        models.TarkovAmmo.penetration.asc(),
+        models.TarkovAmmo.damage.asc(),
+    ).limit(limit).all()
+    if type is None:
+        raise HTTPException(status_code=404, detail='Ammo Table not found')
+    return type
+
     
 # GET static ammo from ammo database
-@app.get("/tarkov_ammo/{ammo_name}/{caliber}}", status_code=status.HTTP_200_OK)
-async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> (LookupBase | None): # data inputted needs to have underscores
+@app.get("/tarkov_ammo/{ammo_group}/{ammo_name}", status_code=status.HTTP_200_OK)
+async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> (UserBase | None): # data inputted needs to have underscores
     ammo = db.query(models.TarkovAmmo).filter(
             models.TarkovAmmo.ammo_name == ammo_name and
             models.TarkovAmmo.caliber == caliber
@@ -99,13 +112,14 @@ async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> (LookupB
     if ammo is None:
         raise HTTPException(status_code=404, detail='Ammo and caliber not found')
     return ammo
+    
 
 # CREATE ammo entry
 # TODO: repeat entries combine numbers
 @app.post("/entries/", status_code=status.HTTP_201_CREATED)
 async def create_entry(entry: EntryBase, db: db_dependency) -> None:
     db_entry = models.Entry(**entry.model_dump())
-    if not validate_ammo(db, entry.ammo_name, entry.caliber, entry.ammo_amount): # use pydantic validation
+    if not validate_ammo(db, entry.ammo_name, entry.caliber): # use pydantic validation
         # prompt user again 
         raise HTTPException(status_code=404, detail='Invalid Entry')
     #dupe_id = findDuplicate(db, entry)
@@ -126,6 +140,7 @@ async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: i
     if entry is None:
         raise HTTPException(status_code=404, detail='Entries were not found')
     return entry
+
 
 # DELETE user AND their entries
 @app.delete('/users/{username}', status_code=status.HTTP_200_OK)

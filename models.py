@@ -13,11 +13,12 @@ class TarkovAmmo(Base):
     __tablename__ = "tarkov_ammo"
 
     ammo_name = Column(String(25), primary_key=True)
-    caliber = Column(String(25), primary_key=True)
+    caliber = Column(String(25))
     penetration = Column(Integer)
     damage = Column(Integer)
     velocity = Column(Integer)
     frag_pct = Column(Integer)
+    ammo_group = Column(Integer, primary_key=True)
 
 class Entry(Base): # Ammo Entry
     __tablename__ = 'entries'
