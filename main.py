@@ -98,20 +98,21 @@ async def read_all_ammo(db: db_dependency, limit: int = TOTAL_AMMO_TYPES):
         models.TarkovAmmo.damage.asc(),
     ).limit(limit).all()
     if type is None:
-        raise HTTPException(status_code=404, detail='Ammo Table not found')
+        raise HTTPException(status_code=404, detail='Ammo table not found')
     return type
 
     
 # GET static ammo from ammo database
-@app.get("/tarkov_ammo/{ammo_group}/{ammo_name}", status_code=status.HTTP_200_OK)
-async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> (UserBase | None): # data inputted needs to have underscores
+@app.get("/tarkov_ammo/{caliber}/{ammo_name}", status_code=status.HTTP_200_OK)
+async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> (bool | None): # data inputted needs to have underscores
     ammo = db.query(models.TarkovAmmo).filter(
             models.TarkovAmmo.ammo_name == ammo_name and
             models.TarkovAmmo.caliber == caliber
         ).first()
     if ammo is None:
-        raise HTTPException(status_code=404, detail='Ammo and caliber not found')
-    return ammo
+        return HTTPException(status_code=404, detail='Ammo matching input not found')
+        # raise HTTPException(status_code=404, detail='Ammo and caliber not found')
+    return True
     
 
 # CREATE ammo entry
@@ -135,7 +136,7 @@ async def create_entry(entry: EntryBase, db: db_dependency) -> None:
 
 # GET entries at username
 @app.get("/entries/{username}", status_code=status.HTTP_200_OK)
-async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: int = TOTAL_AMMO_TYPES): # compare with user id
+async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: int = TOTAL_AMMO_TYPES) -> (List[EntryBase | None]):
     entry = db.query(models.Entry).filter(models.Entry.username == username).offset(skip).limit(limit).all()
     if entry is None:
         raise HTTPException(status_code=404, detail='Entries were not found')
@@ -145,7 +146,7 @@ async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: i
 # DELETE user AND their entries
 @app.delete('/users/{username}', status_code=status.HTTP_200_OK)
 async def delete_user(username: str, db: db_dependency) -> None:
-    db_user_entry = db.query(models.Entry).filter(models.Entry.username == username).all()
+    db_user_entry = read_entries(username=username, db=db) # O(nm) n = totalEntries m = filteredEntries
     if db_user_entry: 
         for entry in db_user_entry: # len(entries) runtime
             db.delete(entry) # delete entry at user_id if it exists
