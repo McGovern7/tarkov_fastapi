@@ -110,7 +110,7 @@ async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> (bool | 
             models.TarkovAmmo.caliber == caliber
         ).first()
     if ammo is None:
-        return HTTPException(status_code=404, detail='Ammo matching input not found')
+        raise HTTPException(status_code=404, detail='Ammo matching input not found')
         # raise HTTPException(status_code=404, detail='Ammo and caliber not found')
     return True
     
