@@ -48,7 +48,7 @@ def create_user(db: Session, user: CreateUserRequest):
 def register_user(user: CreateUserRequest, db: Session = Depends(get_db)):
     db_user = get_user_by_name(db, username=user.username)
     if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered.")
+        raise HTTPException(status_code=401, detail="Username already registered.")
     return create_user(db=db, user=user)
 
 
