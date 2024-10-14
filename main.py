@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, Body, HTTPException, Depends, status
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Annotated, List
 import models as models
@@ -6,11 +7,10 @@ from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 import auth
 # from auth import verify_user_token
-from fastapi.middleware.cors import CORSMiddleware
 
 # uvicorn main:app --reload
 # api on port 8000
-# React app on port 3000
+# React app on port 3000 
 TOTAL_AMMO_TYPES = 160
 app = FastAPI()
 app.include_router(auth.router)
@@ -36,7 +36,12 @@ class EntryBase(BaseModel): # updating user number of each ammo
     caliber: str
     ammo_amount: int
     username: str
-    
+
+class UpdateBase(BaseModel):
+    old_data: dict
+    new_ammount: int
+    db_id: int
+
 class LookupBase(BaseModel): # lookup info of ammo from static database
     ammo_name: str
     caliber: str
@@ -74,21 +79,7 @@ def validate_ammo(db, name, caliber) -> bool:
             return True
     finally:
         db.close()
-'''
-def findDuplicate(db, entry) -> int:
-    try:
-        findDuplicate = db.query(models.Entry).filter(
-            models.Entry.ammo_name == entry.ammo_name and
-            models.Entry.caliber == entry.caliber and
-            models.Entry.username == entry.username
-        ).first()
-        if not findDuplicate:
-            return -1
-        else:
-            return models.Entry.id
-    finally:
-        db.close()
-'''
+
 # Get all ammo info ordered by caliber, then armor penetration, then damage
 @app.get("/tarkov_ammo/", status_code=status.HTTP_200_OK)
 async def read_all_ammo(db: db_dependency, limit: int = TOTAL_AMMO_TYPES):
@@ -106,8 +97,8 @@ async def read_all_ammo(db: db_dependency, limit: int = TOTAL_AMMO_TYPES):
 @app.get("/tarkov_ammo/{caliber}/{ammo_name}", status_code=status.HTTP_200_OK)
 async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> (bool | None): # data inputted needs to have underscores
     ammo = db.query(models.TarkovAmmo).filter(
-            models.TarkovAmmo.ammo_name == ammo_name and
-            models.TarkovAmmo.caliber == caliber
+            models.TarkovAmmo.ammo_name == ammo_name,
+            models.TarkovAmmo.caliber == caliber,
         ).first()
     if ammo is None:
         raise HTTPException(status_code=404, detail='Ammo matching input not found')
@@ -123,15 +114,69 @@ async def create_entry(entry: EntryBase, db: db_dependency) -> None:
     if not validate_ammo(db, entry.ammo_name, entry.caliber): # use pydantic validation
         # prompt user again 
         raise HTTPException(status_code=404, detail='Invalid Entry')
-    #dupe_id = findDuplicate(db, entry)
-    #if dupe_id >= 0:
-    #    patch_duplicate(entry, dupe_id, db) # append onto existing
-    #else:
     db.add(db_entry)
     db.commit()
 
-#@app.patch("/entries/", status_code=status.HTTP_201_CREATED)
-#async def patch_duplicate(entry: EntryBase, dupe_id: int, db: db_dependency) -> None:
+# GET message needed to find the old entry being duplicated, required for the PATCH call
+@app.get("/entries/{username}/{caliber}/{ammo_name}", status_code=status.HTTP_200_OK)
+async def get_duplicate(username: str, caliber: str, ammo_name: str, db: db_dependency):
+  # get specific id
+  duplicate = db.query(models.Entry).filter(
+      models.Entry.username == username,
+      models.Entry.caliber == caliber,
+      models.Entry.ammo_name == ammo_name,
+      ).first()
+  if duplicate is None:
+      return HTTPException(status_code=404, detail='No duplicate entry')
+  return duplicate
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@app.patch("/entries/{id}")
+async def patch_duplicate(id: int, payload: dict, db: db_dependency):
+  patched_entry = payload.old_data
+  new_ammount = payload.new_ammount
+
+  if not patched_entry:
+        raise HTTPException(status_code=400, detail="Invalid input data")
+  
+  if not patched_entry:
+      raise HTTPException(status_code=404, detail='Entry with that ID not found')
+  
+  # patch the fields
+  patched_entry['id'] = id
+  patched_entry['new_ammount'] = new_ammount
+
+  db.add(patched_entry)
+  db.commit()
+  return 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # GET entries at username
