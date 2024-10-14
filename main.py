@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Body, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Annotated, List
+from typing import Annotated, List, Any
 import models as models
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
@@ -37,10 +37,8 @@ class EntryBase(BaseModel): # updating user number of each ammo
     ammo_amount: int
     username: str
 
-class UpdateBase(BaseModel):
-    old_data: dict
-    new_ammount: int
-    db_id: int
+class PatchData(BaseModel):
+    newAmount: int
 
 class LookupBase(BaseModel): # lookup info of ammo from static database
     ammo_name: str
@@ -120,71 +118,32 @@ async def create_entry(entry: EntryBase, db: db_dependency) -> None:
 # GET message needed to find the old entry being duplicated, required for the PATCH call
 @app.get("/entries/{username}/{caliber}/{ammo_name}", status_code=status.HTTP_200_OK)
 async def get_duplicate(username: str, caliber: str, ammo_name: str, db: db_dependency):
-  # get specific id
-  duplicate = db.query(models.Entry).filter(
-      models.Entry.username == username,
-      models.Entry.caliber == caliber,
-      models.Entry.ammo_name == ammo_name,
-      ).first()
-  if duplicate is None:
-      return HTTPException(status_code=404, detail='No duplicate entry')
-  return duplicate
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # get specific id
+    duplicate = db.query(models.Entry).filter(
+        models.Entry.username == username,
+        models.Entry.caliber == caliber,
+        models.Entry.ammo_name == ammo_name,
+        ).first()
+    if duplicate is None:
+        raise HTTPException(status_code=404, detail='No duplicate entry')
+    return duplicate
 
 @app.patch("/entries/{id}")
-async def patch_duplicate(id: int, payload: dict, db: db_dependency):
-  patched_entry = payload.old_data
-  new_ammount = payload.new_ammount
-
-  if not patched_entry:
-        raise HTTPException(status_code=400, detail="Invalid input data")
-  
-  if not patched_entry:
-      raise HTTPException(status_code=404, detail='Entry with that ID not found')
-  
-  # patch the fields
-  patched_entry['id'] = id
-  patched_entry['new_ammount'] = new_ammount
-
-  db.add(patched_entry)
-  db.commit()
-  return 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+async def patch_duplicate(id: int, data: PatchData, db: db_dependency) -> None:
+    patched_entry = db.query(models.Entry).filter(models.Entry.id == id).first()
+    if not patched_entry:
+        raise HTTPException(status_code=404, detail='Entry with that ID not found')
+    # patch the fields
+    patched_entry.ammo_amount = data.newAmount
+    db.add(patched_entry)
+    db.commit()
 
 # GET entries at username
 @app.get("/entries/{username}", status_code=status.HTTP_200_OK)
-async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: int = TOTAL_AMMO_TYPES) -> (List[EntryBase | None]):
+async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: int = TOTAL_AMMO_TYPES) -> (List[EntryBase] | None):
     entry = db.query(models.Entry).filter(models.Entry.username == username).offset(skip).limit(limit).all()
-    if entry is None:
-        raise HTTPException(status_code=404, detail='Entries were not found')
+    if len(entry) == 0:
+        raise HTTPException(status_code=404, detail='No Entries Associated with {}'.format(username))
     return entry
 
 
