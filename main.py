@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Body, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Annotated, List, Any
+from typing import Annotated, List, Optional
 import models as models
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
@@ -37,15 +37,19 @@ class EntryBase(BaseModel): # updating user number of each ammo
     ammo_amount: int
     username: str
 
+class DupeBase(BaseModel):
+    id: int
+    ammo_amount: int
+
 class PatchData(BaseModel):
     newAmount: int
 
 class LookupBase(BaseModel): # lookup info of ammo from static database
     ammo_name: str
     caliber: str
-    penetration: int
-    damage: int
-    velocity: int
+    penetration: Optional[int]
+    damage: Optional[int]
+    velocity: Optional[int]
     frag_pct: int
     ammo_group: int
 
@@ -80,7 +84,7 @@ def validate_ammo(db, name, caliber) -> bool:
 
 # Get all ammo info ordered by caliber, then armor penetration, then damage
 @app.get("/tarkov_ammo/", status_code=status.HTTP_200_OK)
-async def read_all_ammo(db: db_dependency, limit: int = TOTAL_AMMO_TYPES):
+async def read_all_ammo(db: db_dependency, limit: int = TOTAL_AMMO_TYPES) -> List[LookupBase]:
     type = db.query(models.TarkovAmmo).order_by(
         models.TarkovAmmo.ammo_group.asc(),
         models.TarkovAmmo.penetration.asc(),
@@ -93,19 +97,17 @@ async def read_all_ammo(db: db_dependency, limit: int = TOTAL_AMMO_TYPES):
     
 # GET static ammo from ammo database
 @app.get("/tarkov_ammo/{caliber}/{ammo_name}", status_code=status.HTTP_200_OK)
-async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> (bool | None): # data inputted needs to have underscores
+async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> bool: # data inputted needs to have underscores
     ammo = db.query(models.TarkovAmmo).filter(
             models.TarkovAmmo.ammo_name == ammo_name,
             models.TarkovAmmo.caliber == caliber,
         ).first()
     if ammo is None:
         raise HTTPException(status_code=404, detail='Ammo matching input not found')
-        # raise HTTPException(status_code=404, detail='Ammo and caliber not found')
     return True
     
 
 # CREATE ammo entry
-# TODO: repeat entries combine numbers
 @app.post("/entries/", status_code=status.HTTP_201_CREATED)
 async def create_entry(entry: EntryBase, db: db_dependency) -> None:
     db_entry = models.Entry(**entry.model_dump())
@@ -117,7 +119,7 @@ async def create_entry(entry: EntryBase, db: db_dependency) -> None:
 
 # GET message needed to find the old entry being duplicated, required for the PATCH call
 @app.get("/entries/{username}/{caliber}/{ammo_name}", status_code=status.HTTP_200_OK)
-async def get_duplicate(username: str, caliber: str, ammo_name: str, db: db_dependency):
+async def get_duplicate(username: str, caliber: str, ammo_name: str, db: db_dependency) -> DupeBase:
     # get specific id
     duplicate = db.query(models.Entry).filter(
         models.Entry.username == username,
@@ -128,6 +130,7 @@ async def get_duplicate(username: str, caliber: str, ammo_name: str, db: db_depe
         raise HTTPException(status_code=404, detail='No duplicate entry')
     return duplicate
 
+# PATCH existing entry with new ammount
 @app.patch("/entries/{id}")
 async def patch_duplicate(id: int, data: PatchData, db: db_dependency) -> None:
     patched_entry = db.query(models.Entry).filter(models.Entry.id == id).first()
@@ -140,7 +143,7 @@ async def patch_duplicate(id: int, data: PatchData, db: db_dependency) -> None:
 
 # GET entries at username
 @app.get("/entries/{username}", status_code=status.HTTP_200_OK)
-async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: int = TOTAL_AMMO_TYPES) -> (List[EntryBase] | None):
+async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: int = TOTAL_AMMO_TYPES) -> List[EntryBase]:
     entry = db.query(models.Entry).filter(models.Entry.username == username).offset(skip).limit(limit).all()
     if len(entry) == 0:
         raise HTTPException(status_code=404, detail='No Entries Associated with {}'.format(username))
