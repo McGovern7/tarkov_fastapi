@@ -34,10 +34,10 @@ def get_db():
         db.close()
 
 # ensure username doesn't already exist in User database
-def get_user_by_name(db: Session, username: str):
+def get_user_by_name(db: Session, username: str) -> CreateUserRequest:
     return db.query(User).filter(User.username == username).first()
 
-def create_user(db: Session, user: CreateUserRequest):
+def create_user(db: Session, user: CreateUserRequest) -> str:
     hashed_password=pwd_context.hash(user.password), # hashing the password
     db_user = User(username=user.username, hashed_password=hashed_password)
     db.add(db_user)
@@ -45,23 +45,24 @@ def create_user(db: Session, user: CreateUserRequest):
     return "complete"
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def register_user(user: CreateUserRequest, db: Session = Depends(get_db)):
+def register_user(user: CreateUserRequest, db: Session = Depends(get_db)) -> CreateUserRequest:
     db_user = get_user_by_name(db, username=user.username)
     if db_user:
         raise HTTPException(status_code=401, detail="Username already registered.")
     return create_user(db=db, user=user)
 
 
-def authenticate_user(username: str, password: str, db: Session):
-    user = db.query(User).filter(User.username == username).first()
-    if not user: # not match with username
-        return False
-    if not pwd_context.verify(password, user.hashed_password): # hash password, and verify with already hashed password from database
-        return False
+def authenticate_user(username: str, password: str, db: Session) -> (CreateUserRequest | None):
+    user = get_user_by_name(db, username=username)
+    if not user: 
+        return None
+    # # case sensitive equality check && hash password, and verify with already hashed password from database
+    if user.username != username or not pwd_context.verify(password, user.hashed_password):
+        return None
     return user # both username and their hashed password are equal
 
 # Encode JWT using encode, secret key, and algorithm
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -93,7 +94,6 @@ def verify_token(token: str = Depends(oauth2_scheme)):
         id: int = payload.get('id')
         if username is None:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='API Error: User not Found. Token is invalid or expired.')
-        # get_current_user(username=username, user_id=id)
         return payload
     except JWTError:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='JWT Error: Token is invalid or expired.')
