@@ -151,7 +151,7 @@ async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: i
 
 
 # DELETE user AND their entries
-@app.delete('/users/{username}', status_code=status.HTTP_200_OK)
+@app.delete('/users/{username}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(username: str, db: db_dependency) -> None:
     db_user_entry = read_entries(username=username, db=db) # O(nm) n = totalEntries m = filteredEntries
     if db_user_entry: 
