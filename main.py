@@ -143,22 +143,27 @@ async def patch_duplicate(id: int, data: PatchData, db: db_dependency) -> None:
 
 # GET entries at username
 @app.get("/entries/{username}", status_code=status.HTTP_200_OK)
-async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: int = TOTAL_AMMO_TYPES) -> List[EntryBase]:
+async def read_entries(username: str, db: db_dependency, skip: int = 0, limit: int = TOTAL_AMMO_TYPES) -> (List[EntryBase] | None):
     entry = db.query(models.Entry).filter(models.Entry.username == username).offset(skip).limit(limit).all()
     if len(entry) == 0:
         raise HTTPException(status_code=404, detail='No Entries Associated with {}'.format(username))
     return entry
 
-
-# DELETE user AND their entries
-@app.delete('/users/{username}', status_code=status.HTTP_204_NO_CONTENT)
+# DELETE user's entries
+@app.delete("/entries/{username}", status_code=status.HTTP_200_OK)
 async def delete_user(username: str, db: db_dependency) -> None:
-    db_user_entry = read_entries(username=username, db=db) # O(nm) n = totalEntries m = filteredEntries
+    db_user_entry = await read_entries(username=username, db=db) # O(nm) n = totalEntries m = filteredEntries
     if db_user_entry: 
         for entry in db_user_entry: # len(entries) runtime
             db.delete(entry) # delete entry at user_id if it exists
+    db.commit()
+    
+
+# DELETE user 
+@app.delete('/users/{username}', status_code=status.HTTP_200_OK)
+async def delete_user(username: str, db: db_dependency) -> None:
     db_user = db.query(models.User).filter(models.User.username == username).first() # delete user at id
-    if db_user is None:
+    if not db_user:
         raise HTTPException(status_code=404, detail='User not found')
     db.delete(db_user)
     db.commit()
