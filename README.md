@@ -1,4 +1,4 @@
-# Tarkov Storage app using FastAPI
+# Tarkov Storage App using FastAPI
 A solo project building a FastAPI app to interact with Tarkov SQL data
 
 ## APP DESCRIPTION
