@@ -1,11 +1,22 @@
-# Tarkov Storage App using FastAPI
-A solo project building a FastAPI app to interact with Tarkov SQL data
+# Portfolio App Backend
+A FastAPI backend which manages the data for the tarkov-project section of my portfolio
 
-## APP DESCRIPTION
+## TARKOV APP DESCRIPTION
 This app provides a space for players of the game Escape from Tarkov to store the ammo they have found, and view the ammo's advance data. The storage tab can be accessed after registering an account and loggin in.
 
+## Environment
+This portfolio app backend is initiated through the following steps
+1. mkdir portfolio && cd portfolio (the portfolio folder contains both frontend and backend repositories)
+2. python3 -m venv env (create python virtual environment)
+3. source env/bin/activate
+4. pip install fastapi uvicorn sqlalchemy passlib pymysql
+5. pip install python-jose python-multipart cryptography bcrypt
+6. mkdir backend && cd backend
+7. clone backend repository with ssh
+8. host MySQL data using MySQLWorkbench on root
+
 ## BUILD
-The site will be hosted in conjunction with my Portfolio using WordPress
+In order to host this app beyond my local system, the backend will be hosted using Render.com
 
 ## Stack Components
 ### Frontend
