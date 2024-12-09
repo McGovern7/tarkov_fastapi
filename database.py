@@ -6,12 +6,11 @@ import os
 
 load_dotenv()  # Load the .env file
 
-# Connect FastAPI Application to MySQL database
-# export URL_DATABASE=_REMOVED
-URL_DATABASE = os.getenv("URL_DATABASE")
+# export URL_DATABASE='postgresql://postgres.niqfgjqsjklhovgewfla:Dustinjohnson7@aws-0-us-east-1.pooler.supabase.com:6543/postgres'
+URL_DATABASE = 'postgresql://postgres.niqfgjqsjklhovgewfla:Dustinjohnson7@aws-0-us-east-1.pooler.supabase.com:6543/postgres'
 print(URL_DATABASE)
 
-
+ 
 engine = create_engine(URL_DATABASE)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
