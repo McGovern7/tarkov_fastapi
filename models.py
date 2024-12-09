@@ -1,6 +1,6 @@
 from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from database import Base
-# Create Table for MySQL databse
+# Create Table for PostgreSQL databse
 
 class User(Base):
     __tablename__ = "users"
@@ -28,5 +28,3 @@ class Entry(Base): # Ammo Entry
     caliber = Column(String(25))
     ammo_amount = Column(Integer)
     username = Column(String(15), ForeignKey("users.username"))
-
-# storage model has a list of 
