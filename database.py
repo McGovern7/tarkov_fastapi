@@ -7,7 +7,8 @@ import os
 load_dotenv()  # Load the .env file
 
 # export URL_DATABASE='postgresql://postgres.niqfgjqsjklhovgewfla:Dustinjohnson7@aws-0-us-east-1.pooler.supabase.com:6543/postgres'
-URL_DATABASE = 'postgresql://postgres.niqfgjqsjklhovgewfla:Dustinjohnson7@aws-0-us-east-1.pooler.supabase.com:6543/postgres'
+URL_DATABASE = os.getenv("URL_DATABASE")
+
 print(URL_DATABASE)
 
  
