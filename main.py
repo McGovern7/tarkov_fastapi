@@ -6,10 +6,7 @@ import models as models
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 import auth
-# from auth import verify_user_token
 
-# uvicorn main:app --reload
-# api on port 8000
 # React app on port 3000 
 TOTAL_AMMO_TYPES = 160
 app = FastAPI()
@@ -64,7 +61,6 @@ def get_db(): # dont have db open too long
         db.close()
 
 db_dependency = Annotated[Session, Depends(get_db)]
-# user_dependency = Annotated[dict, Depends(verify_user_token)]
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -93,7 +89,6 @@ async def read_all_ammo(db: db_dependency, limit: int = TOTAL_AMMO_TYPES) -> Lis
     if type is None:
         raise HTTPException(status_code=404, detail='Ammo table not found')
     return type
-
     
 # GET static ammo from ammo database
 @app.get("/tarkov_ammo/{caliber}/{ammo_name}", status_code=status.HTTP_200_OK)
@@ -106,7 +101,6 @@ async def read_ammo(ammo_name: str, caliber: str, db: db_dependency) -> bool: # 
         raise HTTPException(status_code=404, detail='Ammo matching input not found')
     return True
     
-
 # CREATE ammo entry
 @app.post("/entries/", status_code=status.HTTP_201_CREATED)
 async def create_entry(entry: EntryBase, db: db_dependency) -> None:
@@ -158,7 +152,6 @@ async def delete_user(username: str, db: db_dependency) -> None:
             db.delete(entry) # delete entry at user_id if it exists
     db.commit()
     
-
 # DELETE user 
 @app.delete('/users/{username}', status_code=status.HTTP_200_OK)
 async def delete_user(username: str, db: db_dependency) -> None:

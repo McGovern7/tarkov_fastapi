@@ -18,8 +18,7 @@ router = APIRouter(
     prefix='/auth',
     tags=['auth']
 )
-# export SECRET_KEY=_REMOVED
-# export ALGORITHM=_REMOVED
+
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRATION_TIME = 30
@@ -56,7 +55,6 @@ def register_user(user: CreateUserRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Profile with that username already registered.")
     return create_user(db=db, user=user)
 
-
 def authenticate_user(username: str, password: str, db: Session) -> (CreateUserRequest | None):
     user = get_user_by_name(db, username=username)
     if not user: 
@@ -89,7 +87,6 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRATION_TIME)
     access_token = create_access_token(data={"sub": user.username, "id": user.id}, expires_delta=access_token_expires) # valid 30 minutes or add time delta
     return {'access_token': access_token, 'token_types': 'bearer'}
-
 
 # decode the JWT
 def verify_token(token: str = Depends(oauth2_scheme)):
