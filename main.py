@@ -18,7 +18,7 @@ app.include_router(auth.router)
 # a different application is allowed to call our fastapi application iff it is running on our local host on port 3000
 
 origins = [
-    "http://localhost:3000", # adjust port if running on different server
+    "https://lukemcg27.netlify.app", # adjust port if running on different server
 ]
 # add origins to application
 app.add_middleware(
