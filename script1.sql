@@ -1,0 +1,229 @@
+DROP DATABASE IF EXISTS `Tarkov_Project`;
+CREATE DATABASE `Tarkov_Project`;
+USE `Tarkov_Project`;
+
+CREATE TABLE `users` (
+  id INT AUTO_INCREMENT,
+  username VARCHAR(15) COLLATE utf8mb4_general_ci,
+  hashed_password VARCHAR(65) COLLATE utf8mb4_general_ci,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE `tarkov_ammo` (
+  ammo_name VARCHAR(25),
+  caliber VARCHAR(25),
+  penetration INT,
+  damage INT,
+  velocity INT,
+  frag_pct INT,
+  ammo_group INT,
+  PRIMARY KEY (ammo_name, ammo_group)
+);
+
+CREATE TABLE `entries` (
+  id INT AUTO_INCREMENT,
+  ammo_name VARCHAR(25),
+  caliber VARCHAR(25),
+  ammo_amount INT,
+  username VARCHAR(15) COLLATE utf8mb4_general_ci,
+  user_id Int,
+  PRIMARY KEY(id),
+  FOREIGN KEY (user_id) REFERENCES users(`id`)
+);
+
+INSERT INTO `tarkov_ammo` (
+`ammo_name`,
+`caliber`,
+`penetration`,
+`damage`,
+`velocity`,
+`frag_pct`, 
+`ammo_group`)
+VALUES
+('5.2MM BUCKSHOT','12 Gauge Shot',1,296,330,0,0),
+('8.5MM MAGNUM BUCKSHOT','12 Gauge Shot',2,400,385,0,0),
+('6.5MM EXPRESS BUCKSHOT','12 Gauge Shot',3,315,430,0,0),
+('7MM BUCKSHOT','12 Gauge Shot',3,280,415,0,0),
+('PIRANHA','12 Gauge Shot',24,250,310,0,0),
+('FLECHETTE','12 Gauge Shot',31,200,320,0,0),
+
+('RIP','12 Gauge Slugs',2,265,410,100,1),
+('SUPERPERFORMANCE HP SLUG','12 Gauge Slugs',5,220,594,39,1),
+('GRIZZLY 40 SLUG','12 Gauge Slugs',12,190,390,12,1),
+('COPPER SABOT HP SLUG','12 Gauge Slugs',14,206,442,38,1),
+('LEAD SLUG','12 Gauge Slugs',15,167,370,20,1),
+('DUAL SABOT SLUG','12 Gauge Slugs',17,170,415,10,1),
+('POLEVA-3 SLUG','12 Gauge Slugs',17,140,410,20,1),
+('FTX CUSTOM LITE SLUG','12 Gauge Slugs',20,183,480,10,1),
+('POLEVA-6U SLUG','12 Gauge Slugs',20,150,430,15,1),
+('MAKESHIFT .50 BMG SLUG','12 Gauge Slugs',26,197,410,5,1),
+('AP-20 ARMOR PIERCING SLUG','12 Gauge Slugs',37,164,510,3,1),
+
+('5.6MM BUCKSHOT','20 Gauge',1,208,340,0,2),
+('6.2MM BUCKSHOT','20 Gauge',2,176,410,0,2),
+('7.5MM BUCKSHOT','20 Gauge',3,200,475,0,2),
+('7.3MM BUCKSHOT','20 Gauge',3,207,430,0,2),
+('DEVASTATOR SLUG','20 Gauge',5,198,405,100,2),
+('POLEVA-3 SLUG','20 Gauge',14,120,425,20,2),
+('STAR SLUG','20 Gauge',16,154,415,10,2),
+('POLEVA-6U','20 Gauge',17,135,445,15,2),
+
+('ZVEZDA FLASHBANG ROUND','23x75mm',NULL,NULL,NULL,20,3),
+('SHRAPNEL-25 BUCKSHOT','23x75mm',10,624,375,0,3),
+('SHRAPNEL-10 BUCKSHOT','23x75mm',11,696,270,0,3),
+('BARRIKADA SLUG','23x75mm',39,192,420,20,3),
+
+('PM SP8 GZH','9x18mm',1,67,250,60,4),
+('PM SP7 GZH','9x18mm',2,77,420,2,4),
+('PM PSV','9x18mm',3,69,280,40,4),
+('PM P GZH','9x18mm',5,50,302,25,4),
+('PM PSO GZH','9x18mm',5,54,315,35,4),
+('PM PS GS PPO','9x18mm',6,55,330,25,4),
+('PM PRS GS','9x18mm',6,58,302,30,4),
+('PM PPE GZH','9x18mm',7,61,297,35,4),
+('PM PPT GZH','9x18mm',8,59,301,17,4),
+('PM PST GZH','9x18mm',12,50,298,20,4),
+('PM RG028 GZH','9x18mm',13,65,330,2,4),
+('PM BZHT GZH','9x18mm',18,53,325,17,4),
+('PMM PSTM GZH','9x18mm',24,58,420,17,4),
+('PM PBM GZH','9x18mm',28,40,519,16,4),
+
+('TT LRNPC','7.62x25mm',7,66,385,35,5),
+('TT LRN','7.62x25mm',8,64,375,35,5),
+('TT FMJ43','7.62x25mm',11,60,427,25,5),
+('TT AKBS','7.62x25mm',12,58,425,25,5),
+('TT P GL','7.62x25mm',14,58,430,25,5),
+('TT PT GZH','7.62x25mm',18,55,415,17,5),
+('TT PST GZH','7.62x25mm',25,50,430,20,5),
+
+('RIP','9x19mm',2,102,381,100,6),
+('QUAKEMAKER','9x19mm',8,85,290,10,6),
+('PSO GZH','9x19mm',10,59,340,25,6),
+('LUGER CGI','9x19mm',10,70,420,25,6),
+('T GZH','9x19mm',14,58,365,15,6),
+('M882','9x19mm',18,56,385,20,6),
+('PST GZH','9x19mm',20,54,457,15,6),
+('AP.6.3','9x19mm',30,52,392,5,6),
+('PBP GZH','9x19mm',39,52,560,5,6),
+
+('ACP RIP','.45',3,130,293,100,7),
+('ACP HYDRA-SHOK','.45',13,100,274,50,7),
+('ACP LASERMATCH FMJ','.45',19,76,290,1,7),
+('ACP MATCH FMJ','.45',25,72,340,1,7),
+('ACP AP','.45',38,66,299,1,7),
+
+('PE GZH','9x21mm',15,80,415,35,8),
+('P GZH','9x21mm',18,65,413,30,8),
+('PS GZH','9x21mm',22,54,410,20,8),
+('7U4','9x21mm',27,47,300,25,8),
+('BT GZH','9x21mm',32,49,410,20,8),
+('7N42','9x21mm',38,45,400,10,8),
+
+('SOFT POINT','.357 MAGNUM',12,108,455,20,9),
+('HP','.357 MAGNUM',18,99,481,60,9),
+('JHP','.357 MAGNUM',24,88,425,60,9),
+('FMJ','.357 MAGNUM',35,70,385,1,9),
+
+('R37.F','5.7x28mm',8,98,729,100,10),
+('SS198LF','5.7x28mm',17,70,792,80,10),
+('R37.X','5.7x28mm',11,81,724,70,10),
+('SS197R','5.7x28mm',25,62,594,50,10),
+('L191 (TRACER)','5.7x28mm',33,53,715,20,10),
+('SB193','5.7x28mm',27,59,299,20,10),
+('SS190','5.7x28mm',37,49,715,20,10),
+
+('ACTION SX','4.6x30mm',18,65,690,50,11),
+('SUBSONIC SX','4.6x30mm',23,52,290,20,11),
+('JSP SX','4.6x30mm',32,46,579,30,11),
+('FMJ SX','4.6x30mm',40,43,620,20,11),
+('AP SX','4.6x30mm',53,35,680,10,11),
+
+('FMJ','9x39mm',17,75,330,30,12),
+('SP-5 GS','9x39mm',28,71,290,20,12),
+('SPP GS','9x39mm',35,68,310,20,12),
+('PAB-9 GS','9x39mm',43,62,320,10,12),
+('SP-6 GS','9x39mm',48,60,305,10,12),
+('BP GS','9x39mm',54,48,295,10,12),
+
+('TKM GEKSA','.366',14,110,550,45,13),
+('TKM FMJ','.366',23,98,580,25,13),
+('TKM EKO','.366',30,73,770,20,13),
+('TKM AP-M','.366',42,90,602,1,13),
+
+('HP','5.45x39mm',9,76,884,35,14),
+('PRS GS','5.45x39mm',13,70,866,30,14),
+('SP','5.45x39mm',15,65,873,45,14),
+('US GS','5.45x39mm',17,63,303,10,14),
+('T GS','5.45x39mm',20,57,883,16,14),
+('FMJ','5.45x39mm',24,55,884,25,14),
+('PS GS','5.45x39mm',28,53,890,40,14),
+('PP GS','5.45x39mm',34,50,886,17,14),
+('BT GS','5.45x39mm',37,48,880,16,14),
+('7N40','5.45x39mm',42,52,915,2,14),
+('BP GS','5.45x39mm',45,46,890,16,14),
+('BS GS','5.45x39mm',54,43,830,17,14),
+('PPBS GS IGOLNIK','5.45x39mm',62,37,905,2,14),
+
+('WARMAGEDDON','5.56x45mm',3,88,936,90,15),
+('HP','5.56x45mm',7,79,947,70,15),
+('MK 255 MOD 0 (RRLP)','5.56x45mm',11,72,936,3,15),
+('M856','5.56x45mm',18,64,874,33,15),
+('FMJ','5.56x45mm',23,59,957,50,15),
+('M855','5.56x45mm',31,57,922,40,15),
+('MK 318 MOD 0 (SOST)','5.56x45mm',33,55,902,35,15),
+('M856A1','5.56x45mm',38,52,940,42,15),
+('M855A1','5.56x45mm',44,49,945,44,15),
+('M995','5.56x45mm',53,42,1013,42,15),
+('SSA AP','5.56x45mm',57,38,1013,20,15),
+
+('HP','7.62x39mm',15,87,754,40,16),
+('SP','7.62x39mm',20,68,772,35,16),
+('FMJ','7.62x39mm',26,63,775,30,16),
+('US GZH','7.62x39mm',29,56,300,8,16),
+('T-45M1 GZH','7.62x39mm',30,64,720,12,16),
+('PS GZH','7.62x39mm',35,57,700,20,16),
+('PP','7.62x39mm',41,55,732,15,16),
+('BP GZH','7.62x39mm',47,58,730,12,16),
+('MAI AP','7.62x39mm',58,47,730,5,16),
+
+('BLACKOUT WHISPER','.300 blk',14,90,853,35,17),
+('BLACKOUT V-MAX','.300 blk',20,72,723,25,17),
+('BLACKOUT BCP FMJ','.300 blk',30,60,605,30,17),
+('BLACKOUT M62 TRACER','.300 blk',36,54,442,20,17),
+('BLACKOUT CBJ','.300 blk',43,58,725,15,17),
+('BLACKOUT AP','.300 blk',48,51,635,30,17),
+
+('SIG FMJ','6.8x51mm',36,80,899,18,18),
+('SIG_HYBRID','6.8x51mm',47,72,914,12,18),
+
+('ULTRA_NOSLER','7.62x51mm',15,107,822,70,19),
+('TCW SP','7.62x51mm',30,87,808,35,19),
+('BCP FMJ','7.62x51mm',35,83,840,20,19),
+('M80','7.62x51mm',41,80,833,17,19),
+('M62 TRACER','7.62x51mm',44,79,816,14,19),
+('M61','7.62x51mm',64,70,849,13,19),
+('M993','7.62x51mm',70,67,910,12,19),
+
+('HP_BT (TRACER)','7.62x54R',23,102,807,40,20),
+('SP_BT (TRACER)','7.62x54R',27,92,703,24,20),
+('FMJ','7.62x54R',33,84,760,20,20),
+('T-46M_GZH','7.62x54R',41,82,800,18,20),
+('LPS_GZH','7.62x54R',42,81,865,18,20),
+('PS_GZH','7.62x54R',45,84,875,8,20),
+('BT_GZH','7.62x54R',55,78,875,8,20),
+('SNB_GZH','7.62x54R',62,75,875,8,20),
+('BS_GS','7.62x54R',70,72,785,8,20),
+
+('PS12A','12.7x55mm',10,165,290,70,21),
+('PS12','12.7x55mm',28,115,285,30,21),
+('PS12B','12.7x55mm',46,102,300,30,21),
+
+('TAC-X','.338 Lapua Magnum',18,196,880,50,22),
+('UCW','.338 Lapua Magnum',32,142,849,60,22),
+('FMJ','.338 Lapua Magnum',47,122,900,20,22),
+('AP','.338 Lapua Magnum',79,115,849,13,22)
+; 
+
+SET SQL_SAFE_UPDATES = 0;
+UPDATE `tarkov_ammo` SET `ammo_name` = Replace(`ammo_name`, ' ', '_');
+UPDATE `tarkov_ammo` SET `caliber` = Replace(`caliber`, ' ', '_');
