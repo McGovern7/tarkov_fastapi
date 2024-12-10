@@ -1,35 +1,53 @@
 # Portfolio App Backend
-A FastAPI backend which manages the data for the tarkov-project section of my portfolio
+A FastAPI backend which manages the FastAPI querying of tarkov-app data for my all-encompassing web app
+- Paired with a frontend which handles the API changes
 
-## TARKOV APP DESCRIPTION
-This app provides a space for players of the game Escape from Tarkov to store the ammo they have found, and view the ammo's advance data. The storage tab can be accessed after registering an account and loggin in.
+## Backend Description
+This repository provides a place for players of the game Escape from Tarkov to log their ammo cache, and view Tarkov's advanced ammo data. The storage tab can be accessed after registering an account and log in.
 
-## Environment
-This portfolio app backend is initiated through the following steps
-1. mkdir portfolio && cd portfolio (the portfolio folder contains both frontend and backend repositories)
-2. python3 -m venv env (create python virtual environment)
-3. source env/bin/activate
-4. pip install fastapi uvicorn sqlalchemy passlib pymysql
-5. pip install python-jose python-multipart cryptography bcrypt
-6. mkdir backend && cd backend
-7. clone backend repository with ssh
-8. host MySQL data using MySQLWorkbench on root
+## Related Repositories
+- <a href="https://github.com/McGovern7/portfolio-app-frontend">Portfolio App Frontend</a>
 
-## BUILD
-In order to host this app beyond my local system, the backend will be hosted using Render.com
+## Local Environment
+Locally hosting this frontend is accomplished through the following steps:
+
+Create a folder to contain the python environment, sql script, along with both frontend and backend folders
+```
+mkdir portfolio && cd portfolio
+mkdir backend && cd backend
+```
+Clone backend repository with ssh, then
+```
+cd ..
+```
+Create python virtual environment
+```
+python3 -m venv env 
+pip install -r /path/to/requirements.txt
+source env/bin/activate
+```
+Host MySQL data using MySQLWorkbench on root
+
+Locally host backend
+```
+cd backend
+uvicorn main:app --reload
+```
+
+## Remote Build
+In order to host this app remotely, the backend will be hosted on Render.com, and the SQL Data will be managed on Supabase.com
 
 ## Stack Components
 ### Frontend
 <div align="center">
-<img height="30px" width="auto" alt="Javscript" src="https://img.shields.io/badge/-empty?logo=javascript&label=Javascript&labelColor=%234d3459&color=%23fcdc00" />
-<img height="30px" width="auto" alt="react version 18.3.1" src="https://img.shields.io/npm/v/react?logo=react&label=React&color=%2300C4DC" />
-<img height="30px" width="auto" alt="axios version 1.7.8" src="https://img.shields.io/npm/v/axios?logo=axios&label=Axios&logoColor=%23671ddf&color=%23671ddf" />
-<img height="30px" width="auto" alt="Node.js version 20.18.1" src="https://img.shields.io/npm/v/node?logo=node.js&label=Node&color=%23417E38" />
-<img height="30px" width="auto" alt="Bootstrap version 5.3.3" src="https://img.shields.io/npm/v/bootstrap?logo=bootstrap&label=Bootstrap&color=%239461fb" />
-<img height="30px" width="auto" alt="anime.js version 3.2.2" src="https://img.shields.io/npm/v/animejs?logo=anime&label=anime.js&color=%23F74F4D" />
-<img height="30px" width="auto" alt="react-icons version 5.3.0" src="https://img.shields.io/npm/v/react-icons?logo=anime&label=react-icons&color=%23e91e63" />
-<img height="30px" width="auto" alt="tailwindcss version 3.4.15" src="https://img.shields.io/npm/v/tailwindcss?logo=tailwindcss&label=Tailwind%20CSS&color=%2338bdf9" />
-            
+    <img height="30px" width="auto" alt="Javscript" src="https://img.shields.io/badge/-empty?logo=javascript&label=Javascript&labelColor=%234d3459&color=%23fcdc00" />
+    <img height="30px" width="auto" alt="react version 18.3.1" src="https://img.shields.io/npm/v/react?logo=react&label=React&color=%2300C4DC" />
+    <img height="30px" width="auto" alt="axios version 1.7.8" src="https://img.shields.io/npm/v/axios?logo=axios&label=Axios&logoColor=%23671ddf&color=%23671ddf" />
+    <img height="30px" width="auto" alt="Node.js version 20.18.1" src="https://img.shields.io/npm/v/node?logo=node.js&label=Node&color=%23417E38" />
+    <img height="30px" width="auto" alt="Bootstrap version 5.3.3" src="https://img.shields.io/npm/v/bootstrap?logo=bootstrap&label=Bootstrap&color=%239461fb" />
+    <img height="30px" width="auto" alt="anime.js version 3.2.2" src="https://img.shields.io/npm/v/animejs?logo=anime&label=anime.js&color=%23F74F4D" />
+    <img height="30px" width="auto" alt="react-icons version 5.3.0" src="https://img.shields.io/npm/v/react-icons?logo=anime&label=react-icons&color=%23e91e63" />
+    <img height="30px" width="auto" alt="tailwindcss version 3.4.15" src="https://img.shields.io/npm/v/tailwindcss?logo=tailwindcss&label=Tailwind%20CSS&color=%2338bdf9" />            
 </div>
 
 ### Backend
@@ -42,6 +60,13 @@ In order to host this app beyond my local system, the backend will be hosted usi
     <img height="30px" width="auto" alt="python jose version 3.3.0" src="https://img.shields.io/pypi/v/python-jose?label=python-jose&color=%23006dad" />  
 </div>
 
+### Hosting
+<div align="center">
+    <img className='col shield' alt="Netlify Frontend" src="https://img.shields.io/badge/Frontend-%20?logo=Netlify&logoColor=%2332e2de&label=Netlify&color=%2332e2de" />
+    <img className='col shield' alt="Render Backend" src="https://img.shields.io/badge/Backend-%20?logo=Render&label=Render&color=%232a0052" />
+    <img className='col shield' alt="Supabase SQL Database" src="https://img.shields.io/badge/SQL%20Database-%20?logo=Supabase&label=Supabase&color=%2339c385" />
+</div>
+
 ## Writeup
 In today's rapidly evolving and competitive tech landscape, full-stack development has become an essential skill for developers. Full-stack development is a multi-discipline skill, requiring devs to have an end-to-end understanding of an application. This comprehensive knowledge enables efficient problem-solving and can lead to a more robust application architecture. For example, a full-stack dev assigned to the frontend can leverage their insights of backend processes to optimize how frontend components interact with server-side logic. These devs can streamline queries, robustly handle bad requests, and minimize server data load—improving both performance and user experience.
 
@@ -50,9 +75,11 @@ When creating applications prior to this project, I was primarily assigned roles
 I have successfully taught myself the various software disciplines necessary to build my first web application as a solo full-stack developer. Made high in demand by today's devs, this project's stack comprises the following tools.
 
 ## Onboarded Skills
-- Starting from almost no background, I have built a web api which is asynchronous, multi-port capable, well documented, secured, and efficient
-- For future projects, I can develop more complex api techniques within the ever-growing FastAPI web framework.
-- With additional built-in packages, I can easily scale my app with features like caching, load balancing, rate limiting, and automated backups.
+- Starting from almost no background, I have built a Web API which is asynchronous, multi-port capable, well documented, secured, and efficient
+- For future projects, I can develop more complex API techniques within the ever-growing FastAPI web framework
+- With additional built-in packages, I can easily scale my app with features like caching, load balancing, rate limiting, and automated backups
 - Having never used React prior to this, I have created a modular, scalable, and accessible app. This app is much more complex than anything I have built in the past, even apps I created in a group
 - I can jump-start future web apps with the components I created for this project (Button, Navbar, Sidebar, etc)
- - Given React’s wealth of libraries, tools, and extensions, there are always new techniques I can and implement.
+- Given React’s wealth of libraries, tools, and extensions, there are always new techniques I can and implement
+- Onboarded multi-provider hosting in order to host my fullstack site with no cost. Site is updated though Github Commits from my frontend and backend repositories
+- Netlify hosts the React frontend, Render the FastAPI backend, and Supabase handles the PostgreSQL database changes
