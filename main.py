@@ -12,8 +12,7 @@ TOTAL_AMMO_TYPES = 160
 app = FastAPI()
 app.include_router(auth.router)
 
-# a different application is allowed to call our fastapi application iff it is running on our local host on port 3000
-
+# a different application is allowed to call our fastapi application if it is running on this url
 origins = [
     "https://lukemcg27.netlify.app", # adjust port if running on different server
 ]

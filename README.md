@@ -8,32 +8,6 @@ This repository provides a place for players of the game Escape from Tarkov to l
 ## Related Repositories
 - <a href="https://github.com/McGovern7/portfolio-app-frontend">Portfolio App Frontend</a>
 
-## Local Environment
-Locally hosting this frontend is accomplished through the following steps:
-
-Create a folder to contain the python environment, sql script, along with both frontend and backend folders
-```
-mkdir portfolio && cd portfolio
-mkdir backend && cd backend
-```
-Clone backend repository with ssh, then
-```
-cd ..
-```
-Create python virtual environment
-```
-python3 -m venv env 
-pip install -r /path/to/requirements.txt
-source env/bin/activate
-```
-Host MySQL data using MySQLWorkbench on root
-
-Locally host backend
-```
-cd backend
-uvicorn main:app --reload
-```
-
 ## Remote Build
 In order to host this app remotely, the backend will be hosted on Render.com, and the SQL Data will be managed on Supabase.com
 
@@ -83,3 +57,29 @@ I have successfully taught myself the various software disciplines necessary to 
 - Given React’s wealth of libraries, tools, and extensions, there are always new techniques I can and implement
 - Onboarded multi-provider hosting in order to host my fullstack site with no cost. Site is updated though Github Commits from my frontend and backend repositories
 - Netlify hosts the React frontend, Render the FastAPI backend, and Supabase handles the PostgreSQL database changes
+
+## Local Environment
+Locally hosting this frontend is accomplished through the following steps:
+
+Create a folder to contain the python environment, sql script, along with both frontend and backend folders
+```
+mkdir portfolio && cd portfolio
+mkdir backend && cd backend
+```
+Clone backend repository with ssh, then
+```
+cd ..
+```
+Create python virtual environment
+```
+python3 -m venv env 
+pip install -r /path/to/requirements.txt
+source env/bin/activate
+```
+Host MySQL data using MySQLWorkbench on root
+
+Locally host backend
+```
+cd backend
+uvicorn main:app --reload
+```
