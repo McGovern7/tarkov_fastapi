@@ -13,9 +13,8 @@ app = FastAPI()
 app.include_router(auth.router)
 
 # a different application is allowed to call our fastapi application iff it is running on our local host on port 3000
-
 origins = [
-    "https://lukemcg27.netlify.app", # adjust port if running on different server
+    "http://localhost:3000" # adjust port if running on different server
 ]
 # add origins to application
 app.add_middleware(
@@ -26,8 +25,7 @@ app.add_middleware(
     allow_headers=['*'] # allow all headers
 )
 
-# pydantic models validate requests from React application
-# use pydantic validators
+# pydantic models validate requests from React application using pydantic validators
 class EntryBase(BaseModel): # updating user number of each ammo
     ammo_name: str
     caliber: str
